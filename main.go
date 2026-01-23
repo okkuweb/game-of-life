@@ -16,7 +16,6 @@ type options struct {
 type model struct {
 	grid   gruid.Grid // drawing grid
 	action action     // UI action
-	mouseAction mouseAction     // UI action
 	interval  time.Duration // time interval between two frames
 	pause bool
 	options options
@@ -42,19 +41,15 @@ func main() {
 
 type action struct {
 	Type  actionType
-}
-
-type mouseAction struct {
-	Type  actionType
 	Location gruid.Point
 }
 
 type actionType int
 
 const (
-	ActionQuit   actionType = iota + 1
+	MouseMain   actionType = iota + 1
+	ActionQuit
 	ActionPause
-	MouseMain
 )
 
 func (m *model) Update(msg gruid.Msg) gruid.Effect {
@@ -69,7 +64,7 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 		if m.pause {
 			break
 		}
-		return tick(m.interval + time.Millisecond * 100)
+		return tick(m.interval + time.Millisecond * 200)
 	case gruid.MsgKeyDown:
 		m.updateMsgKeyDown(msg)
 	case gruid.MsgMouse:
@@ -81,6 +76,7 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 type timeMsg time.Time
 
 func tick(d time.Duration) gruid.Cmd {
+	Log("Tick!", d)
 	t := time.NewTimer(d)
 	return func() gruid.Msg {
 		return timeMsg(<-t.C)
@@ -97,12 +93,9 @@ func (m *model) handleAction() gruid.Effect {
 		}
 	case ActionQuit:
 		return gruid.End()
-	}
-
-	switch m.mouseAction.Type {
 	case MouseMain:
 		Log("Setting point")
-		m.grid.Set(m.mouseAction.Location, gruid.Cell{Rune: '█'})
+		m.grid.Set(m.action.Location, gruid.Cell{Rune: '█'})
 	}
 
 	return nil
@@ -120,7 +113,7 @@ func (m *model) updateMsgKeyDown(msg gruid.MsgKeyDown) {
 func (m *model) updateMouse(msg gruid.MsgMouse) {
 	switch msg.Action {
 	case gruid.MouseMain:
-		m.mouseAction = mouseAction{Type: MouseMain, Location: msg.P}
+		m.action = action{Type: MouseMain, Location: msg.P}
 	}
 }
 
