@@ -64,6 +64,15 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 		if m.pause {
 			break
 		}
+		g2 := gruid.NewGrid(m.options.width, m.options.height)
+		if !m.pause {
+			for p, c := range m.grid.All() {
+				m.AI(p, c, &g2)
+			}
+		}
+		if !m.pause {
+			m.grid = g2
+		}
 		return tick(m.interval + time.Millisecond * 200)
 	case gruid.MsgKeyDown:
 		m.updateMsgKeyDown(msg)
@@ -118,15 +127,6 @@ func (m *model) updateMouse(msg gruid.MsgMouse) {
 }
 
 func (m *model) Draw() gruid.Grid {
-	g2 := gruid.NewGrid(m.options.width, m.options.height)
-	for p, c := range m.grid.All() {
-		if !m.pause {
-			m.AI(p, c, &g2)
-		}
-	}
-	if !m.pause {
-		m.grid = g2
-	}
 	return m.grid
 }
 
