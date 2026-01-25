@@ -12,6 +12,7 @@ import (
 type options struct {
 	width int
 	height int
+	speed int
 }
 
 type model struct {
@@ -19,7 +20,7 @@ type model struct {
 	action action
 	interval  time.Duration
 	pause bool
-	options options
+	opts options
 	ui      *ui.Label
 	frame   gruid.Grid
 }
@@ -27,9 +28,9 @@ type model struct {
 func main() {
 	InitLogger()
 	defer logFile.Close()
-	opt := &options{width: 280, height: 65}
-	gd := gruid.NewGrid(opt.width, opt.height)
-	md := &model{grid: gd, pause: true, options: *opt}
+	opts := &options{width: 280, height: 65, speed: 200}
+	gd := gruid.NewGrid(opts.width, opts.height)
+	md := &model{grid: gd, pause: true, opts: *opts}
 
 	st := gruid.Style{}
 	md.ui = &ui.Label{
@@ -60,6 +61,8 @@ const (
 	MouseMain   actionType = iota + 1
 	ActionQuit
 	ActionPause
+	ActionSpeedUp
+	ActionSpeedDown
 )
 
 func (m *model) Update(msg gruid.Msg) gruid.Effect {
@@ -67,23 +70,23 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 	switch msg := msg.(type) {
 	case gruid.MsgInit:
 		Log("Initializing")
-		m.frame = gruid.NewGrid(m.options.width, m.options.height)
+		m.frame = gruid.NewGrid(m.opts.width, m.opts.height)
 		m.grid.Fill(gruid.Cell{Rune: ' '})
 		m.frame.Fill(gruid.Cell{Rune: ' '})
 		return tick(m.interval)
 	case timeMsg:
-		m.ui.SetText(fmt.Sprintf("Pause: %t \n", m.pause))
+		m.ui.SetText(fmt.Sprintf("Pause: %t \nSpeed: %d", m.pause, m.opts.speed))
 		if m.pause {
 			break
 		}
-		g2 := gruid.NewGrid(m.options.width, m.options.height)
+		g2 := gruid.NewGrid(m.opts.width, m.opts.height)
 		if !m.pause {
 			for p, c := range m.frame.All() {
 				m.AI(p, c, &g2)
 			}
 		}
 		m.frame = g2
-		return tick(m.interval + time.Millisecond * 200)
+		return tick(m.interval + time.Millisecond * time.Duration(m.opts.speed))
 	case gruid.MsgKeyDown:
 		m.updateMsgKeyDown(msg)
 	case gruid.MsgMouse:
@@ -132,16 +135,29 @@ func (m *model) AI(p gruid.Point, c gruid.Cell, g2 *gruid.Grid) gruid.Grid {
 
 func (m *model) handleAction() gruid.Effect {
 
+	var updateUI bool
+
 	switch m.action.Type {
 	case ActionPause:
 		m.pause = !m.pause
 		if !m.pause {
 			return tick(m.interval)
 		}
+		updateUI = true
 	case ActionQuit:
 		return gruid.End()
+	case ActionSpeedUp:
+		m.opts.speed = m.opts.speed * 2
+		updateUI = true
+	case ActionSpeedDown:
+		m.opts.speed = m.opts.speed / 2
+		updateUI = true
 	case MouseMain:
 		m.frame.Set(m.action.Location, gruid.Cell{Rune: '█'})
+	}
+
+	if (updateUI) {
+		m.ui.SetText(fmt.Sprintf("Pause: %t \nSpeed: %d", m.pause, m.opts.speed))
 	}
 
 	return nil
@@ -153,6 +169,10 @@ func (m *model) updateMsgKeyDown(msg gruid.MsgKeyDown) {
 		m.action = action{Type: ActionPause}
 	case gruid.KeyEscape, "Q":
 		m.action = action{Type: ActionQuit}
+	case "+", "d":
+		m.action = action{Type: ActionSpeedUp}
+	case "-", "a":
+		m.action = action{Type: ActionSpeedDown}
 	}
 }
 
