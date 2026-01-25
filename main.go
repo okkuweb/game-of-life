@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"codeberg.org/anaseto/gruid"
@@ -73,7 +72,7 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 		m.frame.Fill(gruid.Cell{Rune: ' '})
 		return tick(m.interval)
 	case timeMsg:
-		m.ui.SetText("Pause: " + strconv.FormatBool(m.pause))
+		m.ui.SetText(fmt.Sprintf("Pause: %t \n", m.pause))
 		if m.pause {
 			break
 		}
