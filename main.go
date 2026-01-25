@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"codeberg.org/anaseto/gruid"
+	"codeberg.org/anaseto/gruid/ui"
 )
 
 type options struct {
@@ -14,11 +16,13 @@ type options struct {
 }
 
 type model struct {
-	grid   gruid.Grid // drawing grid
-	action action     // UI action
-	interval  time.Duration // time interval between two frames
+	grid   gruid.Grid
+	action action
+	interval  time.Duration
 	pause bool
 	options options
+	ui      *ui.Label
+	frame   gruid.Grid
 }
 
 func main() {
@@ -27,6 +31,13 @@ func main() {
 	opt := &options{width: 280, height: 65}
 	gd := gruid.NewGrid(opt.width, opt.height)
 	md := &model{grid: gd, pause: true, options: *opt}
+
+	st := gruid.Style{}
+	md.ui = &ui.Label{
+		Box:     &ui.Box{Title: ui.Text("Pause: " + strconv.FormatBool(md.pause))},
+		Content: ui.StyledText{}.WithStyle(st.WithFg(ColorGreen)),
+	}
+
 	initDriver()
 
 	app := gruid.NewApp(gruid.AppConfig{
@@ -58,20 +69,20 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 	case gruid.MsgInit:
 		Log("Initializing")
 		m.grid.Fill(gruid.Cell{Rune: ' '})
+		m.frame = m.grid
 		return tick(m.interval)
 	case timeMsg:
-		Log("Pause: ", m.pause)
 		if m.pause {
 			break
 		}
 		g2 := gruid.NewGrid(m.options.width, m.options.height)
 		if !m.pause {
-			for p, c := range m.grid.All() {
+			for p, c := range m.frame.All() {
 				m.AI(p, c, &g2)
 			}
 		}
 		if !m.pause {
-			m.grid = g2
+			m.frame = g2
 		}
 		return tick(m.interval + time.Millisecond * 200)
 	case gruid.MsgKeyDown:
@@ -85,49 +96,10 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 type timeMsg time.Time
 
 func tick(d time.Duration) gruid.Cmd {
-	Log("Tick!", d)
 	t := time.NewTimer(d)
 	return func() gruid.Msg {
 		return timeMsg(<-t.C)
 	}
-}
-
-func (m *model) handleAction() gruid.Effect {
-
-	switch m.action.Type {
-	case ActionPause:
-		m.pause = !m.pause
-		if !m.pause {
-			return tick(m.interval)
-		}
-	case ActionQuit:
-		return gruid.End()
-	case MouseMain:
-		Log("Setting point")
-		m.grid.Set(m.action.Location, gruid.Cell{Rune: '█'})
-	}
-
-	return nil
-}
-
-func (m *model) updateMsgKeyDown(msg gruid.MsgKeyDown) {
-	switch msg.Key {
-	case gruid.KeySpace, "p", "P":
-		m.action = action{Type: ActionPause}
-	case gruid.KeyEscape, "Q":
-		m.action = action{Type: ActionQuit}
-	}
-}
-
-func (m *model) updateMouse(msg gruid.MsgMouse) {
-	switch msg.Action {
-	case gruid.MouseMain:
-		m.action = action{Type: MouseMain, Location: msg.P}
-	}
-}
-
-func (m *model) Draw() gruid.Grid {
-	return m.grid
 }
 
 func (m *model) AI(p gruid.Point, c gruid.Cell, g2 *gruid.Grid) gruid.Grid {
@@ -157,5 +129,43 @@ func (m *model) AI(p gruid.Point, c gruid.Cell, g2 *gruid.Grid) gruid.Grid {
 		}
 	}
 	return *g2
+}
+
+func (m *model) handleAction() gruid.Effect {
+
+	switch m.action.Type {
+	case ActionPause:
+		m.pause = !m.pause
+		if !m.pause {
+			return tick(m.interval)
+		}
+	case ActionQuit:
+		return gruid.End()
+	case MouseMain:
+		m.grid.Set(m.action.Location, gruid.Cell{Rune: '█'})
+	}
+
+	return nil
+}
+
+func (m *model) updateMsgKeyDown(msg gruid.MsgKeyDown) {
+	switch msg.Key {
+	case gruid.KeySpace, "p", "P":
+		m.action = action{Type: ActionPause}
+	case gruid.KeyEscape, "Q":
+		m.action = action{Type: ActionQuit}
+	}
+}
+
+func (m *model) updateMouse(msg gruid.MsgMouse) {
+	switch msg.Action {
+	case gruid.MouseMain:
+		m.action = action{Type: MouseMain, Location: msg.P}
+	}
+}
+
+func (m *model) Draw() gruid.Grid {
+	m.grid = m.frame
+	return m.grid
 }
 
