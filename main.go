@@ -34,7 +34,7 @@ func main() {
 
 	st := gruid.Style{}
 	md.ui = &ui.Label{
-		Box:     &ui.Box{Title: ui.Text("Pause: " + strconv.FormatBool(md.pause))},
+		Box:     &ui.Box{Title: ui.Text(" Game of Life ")},
 		Content: ui.StyledText{}.WithStyle(st.WithFg(ColorGreen)),
 	}
 
@@ -68,10 +68,12 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 	switch msg := msg.(type) {
 	case gruid.MsgInit:
 		Log("Initializing")
+		m.frame = gruid.NewGrid(m.options.width, m.options.height)
 		m.grid.Fill(gruid.Cell{Rune: ' '})
-		m.frame = m.grid
+		m.frame.Fill(gruid.Cell{Rune: ' '})
 		return tick(m.interval)
 	case timeMsg:
+		m.ui.SetText("Pause: " + strconv.FormatBool(m.pause))
 		if m.pause {
 			break
 		}
@@ -81,9 +83,7 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 				m.AI(p, c, &g2)
 			}
 		}
-		if !m.pause {
-			m.frame = g2
-		}
+		m.frame = g2
 		return tick(m.interval + time.Millisecond * 200)
 	case gruid.MsgKeyDown:
 		m.updateMsgKeyDown(msg)
@@ -106,10 +106,10 @@ func (m *model) AI(p gruid.Point, c gruid.Cell, g2 *gruid.Grid) gruid.Grid {
 	around := gruid.NewRange(p.X-1, p.Y-1, p.X+2, p.Y+2)
 	livecounter := 0
 	for p2 := range around.Points() {
-		if p2 == p || !m.grid.Contains(p2) {
+		if p2 == p || !m.frame.Contains(p2) {
 			continue
 		} else {
-			c2 := m.grid.At(p2)
+			c2 := m.frame.At(p2)
 			if c2.Rune == '█' {
 				livecounter++
 			}
@@ -142,7 +142,7 @@ func (m *model) handleAction() gruid.Effect {
 	case ActionQuit:
 		return gruid.End()
 	case MouseMain:
-		m.grid.Set(m.action.Location, gruid.Cell{Rune: '█'})
+		m.frame.Set(m.action.Location, gruid.Cell{Rune: '█'})
 	}
 
 	return nil
@@ -165,7 +165,8 @@ func (m *model) updateMouse(msg gruid.MsgMouse) {
 }
 
 func (m *model) Draw() gruid.Grid {
-	m.grid = m.frame
+	m.grid.Copy(m.frame)
+	m.ui.Draw(m.grid.Slice(gruid.NewRange(0, 0, 20, 5)))
 	return m.grid
 }
 
