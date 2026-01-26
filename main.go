@@ -28,7 +28,7 @@ type model struct {
 func main() {
 	InitLogger()
 	defer logFile.Close()
-	opts := &options{width: 280, height: 65, speed: 200}
+	opts := &options{width: 80, height: 24, speed: 200}
 	gd := gruid.NewGrid(opts.width, opts.height)
 	md := &model{grid: gd, pause: true, opts: *opts}
 
@@ -63,6 +63,10 @@ const (
 	ActionPause
 	ActionSpeedUp
 	ActionSpeedDown
+	ActionEnlargeMapY
+	ActionShrinkMapY
+	ActionEnlargeMapX
+	ActionShrinkMapX
 )
 
 func (m *model) Update(msg gruid.Msg) gruid.Effect {
@@ -152,6 +156,18 @@ func (m *model) handleAction() gruid.Effect {
 	case ActionSpeedDown:
 		m.opts.speed = m.opts.speed / 2
 		updateUI = true
+	case ActionEnlargeMapX:
+		m.opts.width++
+		updateUI = true
+	case ActionShrinkMapX:
+		m.opts.width--
+		updateUI = true
+	case ActionEnlargeMapY:
+		m.opts.height++
+		updateUI = true
+	case ActionShrinkMapY:
+		m.opts.height--
+		updateUI = true
 	case MouseMain:
 		m.frame.Set(m.action.Location, gruid.Cell{Rune: '█'})
 	}
@@ -169,10 +185,18 @@ func (m *model) updateMsgKeyDown(msg gruid.MsgKeyDown) {
 		m.action = action{Type: ActionPause}
 	case gruid.KeyEscape, "Q":
 		m.action = action{Type: ActionQuit}
-	case "+", "d":
-		m.action = action{Type: ActionSpeedUp}
-	case "-", "a":
+	case "+", "e":
 		m.action = action{Type: ActionSpeedDown}
+	case "-", "q":
+		m.action = action{Type: ActionSpeedUp}
+	case "s":
+		m.action = action{Type: ActionEnlargeMapY}
+	case "w":
+		m.action = action{Type: ActionShrinkMapY}
+	case "d":
+		m.action = action{Type: ActionEnlargeMapX}
+	case "a":
+		m.action = action{Type: ActionShrinkMapX}
 	}
 }
 
