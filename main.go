@@ -53,10 +53,16 @@ func main() {
 type action struct {
 	Type  actionType
 	Location gruid.Point
+	Update updateType
 }
 
-type actionType int
+type updateType int
+const (
+	Map updateType = iota + 1
+	UI
+)
 
+type actionType int
 const (
 	MouseMain   actionType = iota + 1
 	ActionQuit
@@ -108,6 +114,10 @@ func tick(d time.Duration) gruid.Cmd {
 	}
 }
 
+type life struct {
+
+}
+
 func (m *model) AI(p gruid.Point, c gruid.Cell, g2 *gruid.Grid) gruid.Grid {
 	around := gruid.NewRange(p.X-1, p.Y-1, p.X+2, p.Y+2)
 	livecounter := 0
@@ -139,41 +149,35 @@ func (m *model) AI(p gruid.Point, c gruid.Cell, g2 *gruid.Grid) gruid.Grid {
 
 func (m *model) handleAction() gruid.Effect {
 
-	var updateUI bool
-
 	switch m.action.Type {
 	case ActionPause:
 		m.pause = !m.pause
 		if !m.pause {
 			return tick(m.interval)
 		}
-		updateUI = true
 	case ActionQuit:
 		return gruid.End()
 	case ActionSpeedUp:
 		m.opts.speed = m.opts.speed * 2
-		updateUI = true
 	case ActionSpeedDown:
 		m.opts.speed = m.opts.speed / 2
-		updateUI = true
 	case ActionEnlargeMapX:
 		m.opts.width++
-		updateUI = true
 	case ActionShrinkMapX:
 		m.opts.width--
-		updateUI = true
 	case ActionEnlargeMapY:
 		m.opts.height++
-		updateUI = true
 	case ActionShrinkMapY:
 		m.opts.height--
-		updateUI = true
 	case MouseMain:
 		m.frame.Set(m.action.Location, gruid.Cell{Rune: '█'})
 	}
 
-	if (updateUI) {
+	switch m.action.Update {
+	case UI:
 		m.ui.SetText(fmt.Sprintf("Pause: %t \nSpeed: %d", m.pause, m.opts.speed))
+	case Map:
+		Log("Updating map")
 	}
 
 	return nil
@@ -186,17 +190,17 @@ func (m *model) updateMsgKeyDown(msg gruid.MsgKeyDown) {
 	case gruid.KeyEscape, "Q":
 		m.action = action{Type: ActionQuit}
 	case "+", "e":
-		m.action = action{Type: ActionSpeedDown}
+		m.action = action{Type: ActionSpeedDown, Update: UI}
 	case "-", "q":
-		m.action = action{Type: ActionSpeedUp}
+		m.action = action{Type: ActionSpeedUp, Update: UI}
 	case "s":
-		m.action = action{Type: ActionEnlargeMapY}
+		m.action = action{Type: ActionEnlargeMapY, Update: Map}
 	case "w":
-		m.action = action{Type: ActionShrinkMapY}
+		m.action = action{Type: ActionShrinkMapY, Update: Map}
 	case "d":
-		m.action = action{Type: ActionEnlargeMapX}
+		m.action = action{Type: ActionEnlargeMapX, Update: Map}
 	case "a":
-		m.action = action{Type: ActionShrinkMapX}
+		m.action = action{Type: ActionShrinkMapX, Update: Map}
 	}
 }
 
