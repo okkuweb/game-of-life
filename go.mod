@@ -4,6 +4,7 @@ go 1.25.4
 
 require (
 	codeberg.org/anaseto/gruid v0.25.0
+	codeberg.org/anaseto/gruid-js v0.4.0
 	codeberg.org/anaseto/gruid-tcell v0.5.0
 	github.com/gdamore/tcell/v2 v2.13.8
 )

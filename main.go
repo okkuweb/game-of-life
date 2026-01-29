@@ -27,16 +27,12 @@ type model struct {
 }
 
 func main() {
-	InitLogger()
-	defer logFile.Close()
 	opts := &options{width: 80, height: 24, speed: 200}
 	gd := gruid.NewGrid(opts.width, opts.height)
 	md := &model{grid: gd, pause: true, opts: *opts}
 
-	st := gruid.Style{}
 	md.ui = &ui.Label{
 		Box:     &ui.Box{Title: ui.Text(" Game of Life ")},
-		Content: ui.StyledText{}.WithStyle(st.WithFg(ColorGreen)),
 	}
 
 	initDriver()
@@ -85,7 +81,6 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 	m.action = action{} // reset last action information
 	switch msg := msg.(type) {
 	case gruid.MsgInit:
-		Log("Initializing")
 		m.frame = gruid.NewGrid(m.opts.width, m.opts.height)
 		m.grid.Fill(gruid.Cell{Rune: ' '})
 		m.frame.Fill(gruid.Cell{Rune: ' '})
@@ -195,7 +190,6 @@ func (m *model) handleAction() gruid.Effect {
 	case UI:
 		m.ui.SetText(fmt.Sprintf("Pause: %t \nSpeed: %d", m.pause, m.opts.speed))
 	case Map:
-		Log("Updating map")
 	}
 
 	return nil
