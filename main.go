@@ -10,19 +10,20 @@ import (
 )
 
 type options struct {
-	width int
+	width  int
 	height int
-	speed int
+	speed  int
 }
 
 type model struct {
-	grid   gruid.Grid
-	action action
-	interval  time.Duration
-	pause bool
-	opts options
-	ui      *ui.Label
-	frame   gruid.Grid
+	grid       gruid.Grid
+	action     action
+	heldAction actionType
+	interval   time.Duration
+	pause      bool
+	opts       options
+	ui         *ui.Label
+	frame      gruid.Grid
 }
 
 func main() {
@@ -51,20 +52,25 @@ func main() {
 }
 
 type action struct {
-	Type  actionType
+	Type     actionType
 	Location gruid.Point
-	Update updateType
+	Update   updateType
 }
 
 type updateType int
+
 const (
 	Map updateType = iota + 1
 	UI
 )
 
 type actionType int
+
 const (
-	MouseMain   actionType = iota + 1
+	MouseMain actionType = iota + 1
+	MouseSecondary
+	MouseRelease
+	MouseMove
 	ActionQuit
 	ActionPause
 	ActionSpeedUp
@@ -96,7 +102,7 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 			}
 		}
 		m.frame = g2
-		return tick(m.interval + time.Millisecond * time.Duration(m.opts.speed))
+		return tick(m.interval + time.Millisecond*time.Duration(m.opts.speed))
 	case gruid.MsgKeyDown:
 		m.updateMsgKeyDown(msg)
 	case gruid.MsgMouse:
@@ -115,7 +121,6 @@ func tick(d time.Duration) gruid.Cmd {
 }
 
 type life struct {
-
 }
 
 func (m *model) AI(p gruid.Point, c gruid.Cell, g2 *gruid.Grid) gruid.Grid {
@@ -171,6 +176,19 @@ func (m *model) handleAction() gruid.Effect {
 		m.opts.height--
 	case MouseMain:
 		m.frame.Set(m.action.Location, gruid.Cell{Rune: '█'})
+		m.heldAction = m.action.Type
+	case MouseSecondary:
+		m.frame.Set(m.action.Location, gruid.Cell{Rune: ' '})
+		m.heldAction = m.action.Type
+	case MouseRelease:
+		m.heldAction = m.action.Type
+	case MouseMove:
+		switch m.heldAction {
+		case MouseMain:
+			m.frame.Set(m.action.Location, gruid.Cell{Rune: '█'})
+		case MouseSecondary:
+			m.frame.Set(m.action.Location, gruid.Cell{Rune: ' '})
+		}
 	}
 
 	switch m.action.Update {
@@ -208,6 +226,12 @@ func (m *model) updateMouse(msg gruid.MsgMouse) {
 	switch msg.Action {
 	case gruid.MouseMain:
 		m.action = action{Type: MouseMain, Location: msg.P}
+	case gruid.MouseSecondary:
+		m.action = action{Type: MouseSecondary, Location: msg.P}
+	case gruid.MouseRelease:
+		m.action = action{Type: MouseRelease}
+	case gruid.MouseMove:
+		m.action = action{Type: MouseMove, Location: msg.P}
 	}
 }
 
@@ -216,4 +240,3 @@ func (m *model) Draw() gruid.Grid {
 	m.ui.Draw(m.grid.Slice(gruid.NewRange(0, 0, 20, 5)))
 	return m.grid
 }
-
