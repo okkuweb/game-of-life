@@ -116,6 +116,12 @@ func tick(d time.Duration) gruid.Cmd {
 }
 
 type life struct {
+	Entities  []Entity
+	Positions map[int]gruid.Point
+}
+
+type Entity interface {
+	Rune() rune
 }
 
 func (m *model) AI(p gruid.Point, c gruid.Cell, g2 *gruid.Grid) gruid.Grid {
