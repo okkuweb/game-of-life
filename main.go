@@ -24,6 +24,7 @@ type model struct {
 	opts       options
 	ui         *ui.Label
 	frame      gruid.Grid
+	ECS        *ECS
 }
 
 func main() {
@@ -115,13 +116,26 @@ func tick(d time.Duration) gruid.Cmd {
 	}
 }
 
-type life struct {
+type ECS struct {
 	Entities  []Entity
 	Positions map[int]gruid.Point
 }
 
-type Entity interface {
-	Rune() rune
+type Entity struct {
+	Rune rune
+}
+
+func (es *ECS) AddEntity(e Entity, p gruid.Point) {
+	i := len(es.Entities)
+	es.Entities = append(es.Entities, e)
+	es.Positions[i] = p
+}
+
+func (es *ECS) RemoveEntity(i int) {
+	// TODO: Not sure if this works IRL or not
+	es.Entities[i] = es.Entities[len(es.Entities)-1]
+	es.Entities = es.Entities[:len(es.Entities)-1]
+	delete(es.Positions,i)
 }
 
 func (m *model) AI(p gruid.Point, c gruid.Cell, g2 *gruid.Grid) gruid.Grid {
@@ -139,18 +153,17 @@ func (m *model) AI(p gruid.Point, c gruid.Cell, g2 *gruid.Grid) gruid.Grid {
 	}
 	if c.Rune == '█' { // If alive
 		if livecounter == 2 || livecounter == 3 {
-			g2.Set(p, gruid.Cell{Rune: '█'})
+			m.ECS.AddEntity(Entity{Rune: '█'}, p)
 		} else {
-			g2.Set(p, gruid.Cell{Rune: ' '})
+			m.ECS.AddEntity(Entity{Rune: ' '}, p)
 		}
 	} else { // If dead
 		if livecounter == 3 {
-			g2.Set(p, gruid.Cell{Rune: '█'})
+			m.ECS.AddEntity(Entity{Rune: '█'}, p)
 		} else {
-			g2.Set(p, gruid.Cell{Rune: ' '})
+			m.ECS.AddEntity(Entity{Rune: ' '}, p)
 		}
 	}
-	return *g2
 }
 
 func (m *model) handleAction() gruid.Effect {
@@ -236,6 +249,7 @@ func (m *model) updateMouse(msg gruid.MsgMouse) {
 }
 
 func (m *model) Draw() gruid.Grid {
+	// TODO: Go through entities here and draw them on a new frame
 	m.grid.Copy(m.frame)
 	m.ui.Draw(m.grid.Slice(gruid.NewRange(0, 0, 20, 5)))
 	return m.grid
