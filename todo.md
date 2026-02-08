@@ -1,5 +1,6 @@
 # Notes
 - [ ] Make shrinking the grid also shrink the background color and redraw the whole screen
+- [ ] Remove extra stuff from tcell.go
 - [x] Optimize drawing logic to only check state around live tiles
 - [x] Make it possible to click and drag the mouse to draw many tiles
 - [ ] Add web version of game of life and host in github pages

@@ -255,18 +255,17 @@ func (m *model) updateMouse(msg gruid.MsgMouse) {
 }
 
 func (m *model) Draw() gruid.Grid {
-	// TODO: Go through entities here and draw them on a new frame
-	newFrame := gruid.NewGrid(m.opts.width, m.opts.height)
+	m.frame = gruid.NewGrid(m.opts.width, m.opts.height)
 	c := gruid.Cell{Rune: ' '}
 	c.Style.Bg = ColorBackgroundSecondary
-	newFrame.Fill(c)
+	m.frame.Fill(c)
 	if len(m.entities) > 0 {
 		for p := range m.entities {
-			newFrame.Set(p, gruid.Cell{Rune: '█'})
+			m.frame.Set(p, gruid.Cell{Rune: '█'})
 		}
 	}
-	m.frame = newFrame
 	m.grid = m.frame
 	m.ui.Draw(m.grid.Slice(gruid.NewRange(0, 0, 20, 5)))
 	return m.grid
 }
+
