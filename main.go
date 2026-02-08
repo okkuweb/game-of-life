@@ -24,13 +24,17 @@ type model struct {
 	opts       options
 	ui         *ui.Label
 	frame      gruid.Grid
-	ECS        *ECS
+	entities   map[gruid.Point]bool
 }
 
 func main() {
+	InitLogger()
+	defer logFile.Close()
+	Log("Starting game")
 	opts := &options{width: 80, height: 24, speed: 200}
 	gd := gruid.NewGrid(opts.width, opts.height)
-	md := &model{grid: gd, pause: true, opts: *opts}
+	entities := make(map[gruid.Point]bool)
+	md := &model{grid: gd, pause: true, opts: *opts, entities: entities}
 
 	md.ui = &ui.Label{
 		Box:     &ui.Box{Title: ui.Text(" Game of Life ")},
@@ -91,13 +95,18 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 		if m.pause {
 			break
 		}
-		g2 := gruid.NewGrid(m.opts.width, m.opts.height)
 		if !m.pause {
-			for p, c := range m.frame.All() {
-				m.AI(p, c, &g2)
+			for p := range m.entities {
+				m.CheckLife(p)
+				around := gruid.NewRange(p.X-1, p.Y-1, p.X+2, p.Y+2)
+				for p2 := range around.Points() {
+					c := m.frame.At(p2)
+					if c.Rune == ' ' {
+						m.AddLife(p2)
+					}
+				}
 			}
 		}
-		m.frame = g2
 		return tick(m.interval + time.Millisecond*time.Duration(m.opts.speed))
 	case gruid.MsgKeyDown:
 		m.updateMsgKeyDown(msg)
@@ -116,54 +125,43 @@ func tick(d time.Duration) gruid.Cmd {
 	}
 }
 
-type ECS struct {
-	Entities  []Entity
-	Positions map[int]gruid.Point
+func (m *model) AddEntity(p gruid.Point) {
+	m.entities[p] = true
 }
 
-type Entity struct {
-	Rune rune
+func (m *model) RemoveEntity(p gruid.Point) {
+	delete(m.entities, p)
 }
 
-func (es *ECS) AddEntity(e Entity, p gruid.Point) {
-	i := len(es.Entities)
-	es.Entities = append(es.Entities, e)
-	es.Positions[i] = p
+func (m *model) CheckLife(p gruid.Point) {
+	lifecounter := m.CountNeighbors(p)
+	if lifecounter < 2 || lifecounter > 3 {
+		m.RemoveEntity(p)
+	} else if m.frame.At(p).Rune == ' ' {
+		m.RemoveEntity(p)
+	}
 }
 
-func (es *ECS) RemoveEntity(i int) {
-	// TODO: Not sure if this works IRL or not
-	es.Entities[i] = es.Entities[len(es.Entities)-1]
-	es.Entities = es.Entities[:len(es.Entities)-1]
-	delete(es.Positions,i)
+func (m *model) AddLife(p gruid.Point) {
+	lifecounter := m.CountNeighbors(p)
+	if lifecounter == 3 {
+		m.AddEntity(p)
+	}
 }
 
-func (m *model) AI(p gruid.Point, c gruid.Cell, g2 *gruid.Grid) gruid.Grid {
+func (m *model) CountNeighbors(p gruid.Point) int {
 	around := gruid.NewRange(p.X-1, p.Y-1, p.X+2, p.Y+2)
-	livecounter := 0
+	lifecounter := 0
 	for p2 := range around.Points() {
 		if p2 == p || !m.frame.Contains(p2) {
 			continue
 		} else {
-			c2 := m.frame.At(p2)
-			if c2.Rune == '█' {
-				livecounter++
+			if m.frame.At(p2).Rune == '█' {
+				lifecounter++
 			}
 		}
 	}
-	if c.Rune == '█' { // If alive
-		if livecounter == 2 || livecounter == 3 {
-			m.ECS.AddEntity(Entity{Rune: '█'}, p)
-		} else {
-			m.ECS.AddEntity(Entity{Rune: ' '}, p)
-		}
-	} else { // If dead
-		if livecounter == 3 {
-			m.ECS.AddEntity(Entity{Rune: '█'}, p)
-		} else {
-			m.ECS.AddEntity(Entity{Rune: ' '}, p)
-		}
-	}
+	return lifecounter
 }
 
 func (m *model) handleAction() gruid.Effect {
@@ -189,19 +187,27 @@ func (m *model) handleAction() gruid.Effect {
 	case ActionShrinkMapY:
 		m.opts.height--
 	case MouseMain:
-		m.frame.Set(m.action.Location, gruid.Cell{Rune: '█'})
+		if m.frame.At(m.action.Location).Rune == ' ' {
+			m.AddEntity(m.action.Location)
+		}
 		m.heldAction = m.action.Type
 	case MouseSecondary:
-		m.frame.Set(m.action.Location, gruid.Cell{Rune: ' '})
+		if m.frame.At(m.action.Location).Rune == '█' {
+			m.RemoveEntity(m.action.Location)
+		}
 		m.heldAction = m.action.Type
 	case MouseRelease:
 		m.heldAction = m.action.Type
 	case MouseMove:
 		switch m.heldAction {
 		case MouseMain:
-			m.frame.Set(m.action.Location, gruid.Cell{Rune: '█'})
+			if m.frame.At(m.action.Location).Rune == ' ' {
+				m.AddEntity(m.action.Location)
+			}
 		case MouseSecondary:
-			m.frame.Set(m.action.Location, gruid.Cell{Rune: ' '})
+			if m.frame.At(m.action.Location).Rune == '█' {
+				m.RemoveEntity(m.action.Location)
+			}
 		}
 	}
 
@@ -250,7 +256,17 @@ func (m *model) updateMouse(msg gruid.MsgMouse) {
 
 func (m *model) Draw() gruid.Grid {
 	// TODO: Go through entities here and draw them on a new frame
-	m.grid.Copy(m.frame)
+	newFrame := gruid.NewGrid(m.opts.width, m.opts.height)
+	c := gruid.Cell{Rune: ' '}
+	c.Style.Bg = ColorBackgroundSecondary
+	newFrame.Fill(c)
+	if len(m.entities) > 0 {
+		for p := range m.entities {
+			newFrame.Set(p, gruid.Cell{Rune: '█'})
+		}
+	}
+	m.frame = newFrame
+	m.grid = m.frame
 	m.ui.Draw(m.grid.Slice(gruid.NewRange(0, 0, 20, 5)))
 	return m.grid
 }
