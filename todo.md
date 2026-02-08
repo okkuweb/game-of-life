@@ -1,5 +1,6 @@
 # Notes
-- [ ] Optimize drawing logic to only check state around live tiles
+- [ ] Make shrinking the grid also shrink the background color and redraw the whole screen
+- [x] Optimize drawing logic to only check state around live tiles
 - [x] Make it possible to click and drag the mouse to draw many tiles
 - [ ] Add web version of game of life and host in github pages
     - [ ] Maybe add a runner that deploys it whenever there's changes
