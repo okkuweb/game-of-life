@@ -32,7 +32,7 @@ func main() {
 	defer logFile.Close()
 	Log("Starting game")
 	opts := &options{width: 80, height: 24, speed: 200}
-	gd := gruid.NewGrid(opts.width, opts.height)
+	gd := gruid.NewGrid(1000, 500)
 	entities := make(map[gruid.Point]bool)
 	md := &model{grid: gd, pause: true, opts: *opts, entities: entities}
 
@@ -177,15 +177,25 @@ func (m *model) handleAction() gruid.Effect {
 	case ActionSpeedUp:
 		m.opts.speed = m.opts.speed * 2
 	case ActionSpeedDown:
-		m.opts.speed = m.opts.speed / 2
+		if (m.opts.speed > 25) {
+			m.opts.speed = m.opts.speed / 2
+		}
 	case ActionEnlargeMapX:
-		m.opts.width++
+		if (m.opts.width < 999) {
+			m.opts.width++
+		}
 	case ActionShrinkMapX:
-		m.opts.width--
+		if (m.opts.width > 30) {
+			m.opts.width--
+		}
 	case ActionEnlargeMapY:
-		m.opts.height++
+		if (m.opts.height < 499) {
+			m.opts.height++
+		}
 	case ActionShrinkMapY:
-		m.opts.height--
+		if (m.opts.height > 6) {
+			m.opts.height--
+		}
 	case MouseMain:
 		if m.frame.At(m.action.Location).Rune == ' ' {
 			m.AddEntity(m.action.Location)
@@ -255,6 +265,7 @@ func (m *model) updateMouse(msg gruid.MsgMouse) {
 }
 
 func (m *model) Draw() gruid.Grid {
+	m.grid = gruid.NewGrid(1000, 500)
 	m.frame = gruid.NewGrid(m.opts.width, m.opts.height)
 	c := gruid.Cell{Rune: ' '}
 	c.Style.Bg = ColorBackgroundSecondary
@@ -264,7 +275,7 @@ func (m *model) Draw() gruid.Grid {
 			m.frame.Set(p, gruid.Cell{Rune: '█'})
 		}
 	}
-	m.grid = m.frame
+	m.grid.Copy(m.frame)
 	m.ui.Draw(m.grid.Slice(gruid.NewRange(0, 0, 20, 5)))
 	return m.grid
 }
