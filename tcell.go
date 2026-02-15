@@ -29,22 +29,6 @@ func (sty styler) GetStyle(cst gruid.Style) tc.Style {
 }
 
 const (
-	ColorBackground          gruid.Color = gruid.ColorDefault // background
-	ColorBackgroundSecondary gruid.Color = 1 + 0              // black
-	ColorForeground          gruid.Color = gruid.ColorDefault
-	ColorForegroundSecondary gruid.Color = 1 + 7  // white
-	ColorForegroundEmph      gruid.Color = 1 + 15 // bright white
-	ColorRed                 gruid.Color = 1 + 9  // bright red
-	ColorGreen               gruid.Color = 1 + 2
-	ColorYellow              gruid.Color = 1 + 3
-	ColorBlue                gruid.Color = 1 + 4
-	ColorMagenta             gruid.Color = 1 + 5
-	ColorCyan                gruid.Color = 1 + 6
-	ColorOrange              gruid.Color = 1 + 1  // red
-	ColorViolet              gruid.Color = 1 + 12 // bright blue
-)
-
-const (
 	Color256Base03  gruid.Color = 234
 	Color256Base02  gruid.Color = 235
 	Color256Base01  gruid.Color = 240

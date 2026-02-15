@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"time"
 
 	"codeberg.org/anaseto/gruid"
@@ -28,11 +29,18 @@ type model struct {
 }
 
 func main() {
-	InitLogger()
-	defer logFile.Close()
-	Log("Starting game")
+	if runtime.GOOS != "js" {
+		InitLogger()
+		defer logFile.Close()
+		Log("Starting game")
+	}
 	opts := &options{width: 80, height: 24, speed: 200}
-	gd := gruid.NewGrid(1000, 500)
+	var gd gruid.Grid
+	if runtime.GOOS != "js" {
+		gd = gruid.NewGrid(1000, 500)
+	} else {
+		gd = gruid.NewGrid(80, 24)
+	}
 	entities := make(map[gruid.Point]bool)
 	md := &model{grid: gd, pause: true, opts: *opts, entities: entities}
 
@@ -240,14 +248,18 @@ func (m *model) updateMsgKeyDown(msg gruid.MsgKeyDown) {
 		m.action = action{Type: ActionSpeedDown, Update: UI}
 	case "-", "q":
 		m.action = action{Type: ActionSpeedUp, Update: UI}
-	case "s":
-		m.action = action{Type: ActionEnlargeMapY, Update: Map}
-	case "w":
-		m.action = action{Type: ActionShrinkMapY, Update: Map}
-	case "d":
-		m.action = action{Type: ActionEnlargeMapX, Update: Map}
-	case "a":
-		m.action = action{Type: ActionShrinkMapX, Update: Map}
+	}
+	if runtime.GOOS != "js" {
+		switch msg.Key {
+		case "s":
+			m.action = action{Type: ActionEnlargeMapY, Update: Map}
+		case "w":
+			m.action = action{Type: ActionShrinkMapY, Update: Map}
+		case "d":
+			m.action = action{Type: ActionEnlargeMapX, Update: Map}
+		case "a":
+			m.action = action{Type: ActionShrinkMapX, Update: Map}
+		}
 	}
 }
 
@@ -265,7 +277,11 @@ func (m *model) updateMouse(msg gruid.MsgMouse) {
 }
 
 func (m *model) Draw() gruid.Grid {
-	m.grid = gruid.NewGrid(1000, 500)
+	if runtime.GOOS != "js" {
+		m.grid = gruid.NewGrid(1000, 500)
+	} else {
+		m.grid = gruid.NewGrid(80, 24)
+	}
 	m.frame = gruid.NewGrid(m.opts.width, m.opts.height)
 	c := gruid.Cell{Rune: ' '}
 	c.Style.Bg = ColorBackgroundSecondary
