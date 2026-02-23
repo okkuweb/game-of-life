@@ -55,7 +55,10 @@ func main() {
 	md := &model{grid: gd, pause: true, opts: *opts, entities: entities}
 
 	md.ui = &ui.Label{
-		Box: &ui.Box{Title: ui.Text(" Game of Life ")},
+		Box: &ui.Box{
+			Title: ui.Text(" Game of Life ").WithStyle(gruid.Style{Fg: ColorBlue}),
+			Style: gruid.Style{Fg: ColorViolet},
+		},
 	}
 
 	initDriver()
