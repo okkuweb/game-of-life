@@ -1,14 +1,15 @@
 # To-Do
 # In progress
-- [ ] Add web version of game of life
-    - [ ] Host in github pages
-    - [ ] Maybe add a runner that deploys it whenever there's changes
-    - [ ] Add a link to github pages to readme
-    - [x] Added basic web support
 - [ ] Remove extra stuff from tcell.go
 - [ ] Recover UI colors
-- [ ] Add more keybindings and update them to readme
+- [ ] Clean up code a bit
 # Done
+- [x] Add more keybindings and update them to readme
+- [x] Add web version of game of life
+    - [x] Host in github pages
+    - [x] Maybe add a runner that deploys it whenever there's changes
+    - [x] Add a link to github pages to readme
+    - [x] Added basic web support
 - [x] Make shrinking the grid also shrink the background color and redraw the whole screen
 - [x] Optimize drawing logic to only check state around live tiles
 - [x] Make it possible to click and drag the mouse to draw many tiles
