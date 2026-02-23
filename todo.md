@@ -3,6 +3,7 @@
 - [ ] Remove extra stuff from tcell.go
 - [ ] Recover UI colors
 - [ ] Clean up code a bit
+- [ ] Make unit tests
 # Done
 - [x] Add more keybindings and update them to readme
 - [x] Add web version of game of life
