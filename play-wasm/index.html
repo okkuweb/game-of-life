@@ -3,19 +3,14 @@
     <head>
         <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
         <meta name="viewport" content="initial-scale=1">
-        <title>gruid Application Title</title>
-        <!--<link rel="stylesheet" type="text/css" href="style.css" />-->
+        <title>Game of Life</title>
     </head>
     <body>
         <script src="wasm_exec.js"></script>
-        <!--<script src="screenfull.min.js"></script>-->
         <div id="appdiv">
             <canvas id="appcanvas">
                 Application Screen
             </canvas>
-        </div>
-        <div style="display:none">
-            <img id="loading" src="loading-screen.png" alt="Application Loading Screen">
         </div>
         <script>
             var wasmfile = "game-of-life.wasm";
@@ -25,12 +20,6 @@
             canvas.width = loadingImg.naturalWidth;
             canvas.height = loadingImg.naturalHeight;
             ctx.drawImage(loadingImg, 0, 0);
-            // var appdiv = document.getElementById("appdiv");
-            // document.getElementById('goFS').addEventListener('click', () => {
-            // 	if (screenfull.enabled) {
-            // 		screenfull.request(appdiv);
-            // 	}
-            // });
             if (!WebAssembly.instantiateStreaming) { // polyfill
                 WebAssembly.instantiateStreaming = async (resp, importObject) => {
                     const source = await (await resp).arrayBuffer();
