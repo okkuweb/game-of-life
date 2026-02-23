@@ -57,11 +57,6 @@ func getTileDrawer() (*TileDrawer, error) {
 	return t, nil
 }
 
-const (
-	ColorBackground          gruid.Color = gruid.ColorDefault // background
-	ColorBackgroundSecondary gruid.Color = 1 + 0              // black
-)
-
 func (t *TileDrawer) GetImage(c gruid.Cell) image.Image {
 	// we use some selenized colors
 	fg := image.NewUniform(color.RGBA{0xad, 0xbc, 0xbc, 255})
