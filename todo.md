@@ -1,9 +1,9 @@
 # To-Do
 # In progress
-- [ ] Remove extra stuff from tcell.go
-- [ ] Recover UI colors
 - [ ] Make unit tests
 # Done
+- [x] Remove extra stuff from tcell.go
+- [x] Recover UI colors
 - [x] Clean up code a bit
 - [x] Add more keybindings and update them to readme
 - [x] Add web version of game of life
