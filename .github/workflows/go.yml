@@ -30,7 +30,7 @@ jobs:
 
     - uses: actions/upload-pages-artifact@v3
       with:
-        path: play-wasm
+        path: wasm
 
   deploy:
     needs: build
