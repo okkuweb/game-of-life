@@ -34,12 +34,12 @@ func main() {
 		defer logFile.Close()
 		Log("Starting game")
 	}
-	opts := &options{width: 80, height: 24, speed: 200}
+	opts := &options{width: 126, height: 33, speed: 200}
 	var gd gruid.Grid
 	if runtime.GOOS != "js" {
 		gd = gruid.NewGrid(1000, 500)
 	} else {
-		gd = gruid.NewGrid(80, 24)
+		gd = gruid.NewGrid(opts.width, opts.height)
 	}
 	entities := make(map[gruid.Point]bool)
 	md := &model{grid: gd, pause: true, opts: *opts, entities: entities}
@@ -242,8 +242,6 @@ func (m *model) updateMsgKeyDown(msg gruid.MsgKeyDown) {
 	switch msg.Key {
 	case gruid.KeySpace, "p", "P":
 		m.action = action{Type: ActionPause}
-	case gruid.KeyEscape, "Q":
-		m.action = action{Type: ActionQuit}
 	case "+", "e":
 		m.action = action{Type: ActionSpeedDown, Update: UI}
 	case "-", "q":
@@ -251,6 +249,8 @@ func (m *model) updateMsgKeyDown(msg gruid.MsgKeyDown) {
 	}
 	if runtime.GOOS != "js" {
 		switch msg.Key {
+		case gruid.KeyEscape, "Q":
+			m.action = action{Type: ActionQuit}
 		case "s":
 			m.action = action{Type: ActionEnlargeMapY, Update: Map}
 		case "w":
@@ -280,7 +280,7 @@ func (m *model) Draw() gruid.Grid {
 	if runtime.GOOS != "js" {
 		m.grid = gruid.NewGrid(1000, 500)
 	} else {
-		m.grid = gruid.NewGrid(80, 24)
+		m.grid = gruid.NewGrid(m.opts.width, m.opts.height)
 	}
 	m.frame = gruid.NewGrid(m.opts.width, m.opts.height)
 	c := gruid.Cell{Rune: ' '}
