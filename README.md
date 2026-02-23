@@ -1,5 +1,6 @@
-# Game of Life (in terminal)
-Conway's Game of Life in terminal using [Gruid](https://codeberg.org/anaseto/gruid)
+# Game of Life
+Conway's Game of Life using [Gruid](https://codeberg.org/anaseto/gruid)
+Runs in the terminal and on a browser with WASM
 
 ## Try out the web version
 A WASM build is hosted on [github pages](https://okkuweb.github.io/game-of-life/)
