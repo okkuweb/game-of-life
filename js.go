@@ -62,8 +62,11 @@ func (t *TileDrawer) GetImage(c gruid.Cell) image.Image {
 	fg := image.NewUniform(color.RGBA{0xad, 0xbc, 0xbc, 255})
 	bg := image.NewUniform(color.RGBA{0x18, 0x49, 0x56, 255})
 	switch c.Style.Fg {
-	case ColorBackgroundSecondary:
-		fg = image.NewUniform(color.RGBA{0x46, 0x95, 0xf7, 255})
+	case ColorLife:
+		fg = image.NewUniform(color.RGBA{0x4C, 0xAF, 0x50, 255})
+	case ColorUIBorder:
+		fg = image.NewUniform(color.RGBA{0x9C, 0x8D, 0xD7, 255})
+		bg = image.NewUniform(color.RGBA{0x13, 0x3D, 0x49, 255})
 	}
 	return t.drawer.Draw(c.Rune, fg, bg)
 }

@@ -13,8 +13,8 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 	switch msg := msg.(type) {
 	case gruid.MsgInit:
 		m.frame = gruid.NewGrid(m.opts.width, m.opts.height)
-		m.grid.Fill(gruid.Cell{Rune: ' '})
-		m.frame.Fill(gruid.Cell{Rune: ' '})
+		m.grid.Fill(gruid.Cell{Rune: ' ', Style: gruid.Style{Fg: ColorLife}})
+		m.frame.Fill(gruid.Cell{Rune: ' ', Style: gruid.Style{Fg: ColorLife}})
 		return tick(m.interval)
 	case timeMsg:
 		m.ui.SetText(fmt.Sprintf("Pause: %t \nSpeed: %d", m.pause, m.opts.speed))
@@ -97,12 +97,11 @@ func (m *model) Draw() gruid.Grid {
 		m.grid = gruid.NewGrid(m.opts.width, m.opts.height)
 	}
 	m.frame = gruid.NewGrid(m.opts.width, m.opts.height)
-	c := gruid.Cell{Rune: ' '}
-	c.Style.Bg = ColorBackgroundSecondary
+	c := gruid.Cell{Rune: ' ', Style: gruid.Style{Bg: ColorPrimary}}
 	m.frame.Fill(c)
 	if len(m.entities) > 0 {
 		for p := range m.entities {
-			m.frame.Set(p, gruid.Cell{Rune: '█'})
+			m.frame.Set(p, gruid.Cell{Rune: '█', Style: gruid.Style{Fg: ColorLife}})
 		}
 	}
 	m.grid.Copy(m.frame)
