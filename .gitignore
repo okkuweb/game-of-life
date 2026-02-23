@@ -2,4 +2,3 @@ app.log
 app
 play-wasm/app.wasm
 play-wasm/game-of-life.wasm
-play-wasm/wasm_exec.js
