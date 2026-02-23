@@ -1,2 +1,3 @@
 app.log
 app
+play-wasm/app.wasm
