@@ -1,6 +1,7 @@
 # To-Do
 # In progress
 - [ ] Make unit tests
+- [ ] Pausing causes some inconsistencies in tick timing, especially on slower tick intervals. Setup slow-ish interval and unpause and pause quickly multiple times to reproduce
 # Done
 - [x] Remove extra stuff from tcell.go
 - [x] Recover UI colors
