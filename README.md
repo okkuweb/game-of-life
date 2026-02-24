@@ -18,12 +18,13 @@ A WASM build is hosted on [github pages](https://okkuweb.github.io/game-of-life/
 - w, a, s, d: increase and decrease window size
 
 
-## Dependencies
+## Building
+### Dependencies
 - [go](https://go.dev/doc/install)
-## To run in the terminal
+### To run in the terminal
 1. `go get`
 2. `go run ./...`
-## To build wasm version
+### To build wasm version
 1. Copy your local wasm by running `./dev/copy-wasm.sh` in the project root dir
 2. Run `./dev/build-js.sh`
 3. Run `go run -tags serve ./dev/serve.go` to serve on http://localhost:8080
