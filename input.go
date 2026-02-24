@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"time"
 
 	"codeberg.org/anaseto/gruid"
 )
@@ -27,10 +28,10 @@ func (m *model) handleAction() gruid.Effect {
 	switch m.action.Type {
 	case ActionPause:
 		m.pause = !m.pause
-		if !m.pause {
-			return tick(m.interval)
-		}
 		m.updateUIText(m.pause, m.opts.speed)
+		if !m.pause {
+			return tick(m.interval + time.Millisecond*time.Duration(m.opts.speed))
+		}
 	case ActionQuit:
 		return gruid.End()
 	case ActionSpeedUp:

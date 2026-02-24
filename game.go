@@ -15,21 +15,18 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 		m.frame = gruid.NewGrid(m.opts.width, m.opts.height)
 		m.grid.Fill(gruid.Cell{Rune: ' ', Style: gruid.Style{Fg: ColorLife}})
 		m.frame.Fill(gruid.Cell{Rune: ' ', Style: gruid.Style{Fg: ColorLife}})
-		return tick(m.interval)
-	case timeMsg:
 		m.ui.SetText(fmt.Sprintf("Pause: %t \nSpeed: %d", m.pause, m.opts.speed))
+	case timeMsg:
 		if m.pause {
 			break
 		}
-		if !m.pause {
-			for p := range m.entities {
-				m.CheckLife(p)
-				around := gruid.NewRange(p.X-1, p.Y-1, p.X+2, p.Y+2)
-				for p2 := range around.Points() {
-					c := m.frame.At(p2)
-					if c.Rune == ' ' {
-						m.AddLife(p2)
-					}
+		for p := range m.entities {
+			m.CheckLife(p)
+			around := gruid.NewRange(p.X-1, p.Y-1, p.X+2, p.Y+2)
+			for p2 := range around.Points() {
+				c := m.frame.At(p2)
+				if c.Rune == ' ' {
+					m.AddLife(p2)
 				}
 			}
 		}
@@ -44,10 +41,18 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 
 type timeMsg time.Time
 
+var tickPending bool
+func noop() gruid.Msg { return nil }
 func tick(d time.Duration) gruid.Cmd {
+	if tickPending {
+		return noop
+	}
+	tickPending = true
 	t := time.NewTimer(d)
 	return func() gruid.Msg {
-		return timeMsg(<-t.C)
+		<-t.C
+		tickPending = false
+		return timeMsg{}
 	}
 }
 
