@@ -1,4 +1,4 @@
 app.log
 app
-play-wasm/app.wasm
-play-wasm/game-of-life.wasm
+wasm/app.wasm
+wasm/game-of-life.wasm

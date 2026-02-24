@@ -1,2 +1,2 @@
 #!/bin/bash
-GOOS=js GOARCH=wasm go build -o ./play-wasm/game-of-life.wasm .
+GOOS=js GOARCH=wasm go build -o ./wasm/game-of-life.wasm .
