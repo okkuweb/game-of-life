@@ -17,6 +17,9 @@ A WASM build is hosted on [github pages](https://okkuweb.github.io/game-of-life/
 - Q, ESC: quit game
 - w, a, s, d: increase and decrease window size
 
+
+## Dependencies
+- [go](https://go.dev/doc/install)
 ## To run in the terminal
 1. `go get`
 2. `go run ./...`
