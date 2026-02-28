@@ -42,10 +42,9 @@ func (m *model) Update(msg gruid.Msg) gruid.Effect {
 type timeMsg time.Time
 
 var tickPending bool
-func noop() gruid.Msg { return nil }
 func tick(d time.Duration) gruid.Cmd {
 	if tickPending {
-		return noop
+		return func() gruid.Msg { return nil }
 	}
 	tickPending = true
 	t := time.NewTimer(d)
